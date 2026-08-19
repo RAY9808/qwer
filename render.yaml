@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: korean-law-mcp
+    runtime: python
+    plan: free
+    region: singapore
+    buildCommand: pip install -r requirements.txt
+    startCommand: python server.py
+    healthCheckPath: /healthz
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.6"
+      - key: LAW_API_OC
+        sync: false
+      - key: MCP_AUTH_TOKEN
+        sync: false
