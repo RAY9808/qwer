@@ -6,6 +6,8 @@
 
 제공 도구: `search_law`, `get_law`, `search_precedent`, `get_precedent`, `search`, `get`
 
+> 같은 방식의 **전자공시(OpenDART) 원격 MCP 서버**는 [`dart/`](dart/README.md) 폴더에 있습니다.
+
 ---
 
 ## 1. 접근 토큰

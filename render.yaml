@@ -14,3 +14,19 @@ services:
         sync: false
       - key: MCP_AUTH_TOKEN
         sync: false
+  - type: web
+    name: opendart-mcp
+    runtime: python
+    plan: free
+    region: singapore
+    rootDir: dart
+    buildCommand: pip install -r requirements.txt
+    startCommand: python server.py
+    healthCheckPath: /healthz
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.6"
+      - key: DART_API_KEY
+        sync: false
+      - key: MCP_AUTH_TOKEN
+        sync: false
