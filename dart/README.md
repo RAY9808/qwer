@@ -2,7 +2,7 @@
 
 금융감독원 전자공시 OPEN API(opendart.fss.or.kr)를 감싸는 **원격 MCP 서버**입니다.
 상위 폴더의 korean-law 서버와 구조·접근 제어(`MCP_AUTH_TOKEN`)·배포 방식이 같고,
-claude.ai 일반 대화창의 "커스텀 커넥터"로 등록해 씁니다.
+claude.ai 일반 대화창의 "커스텀 커넥터"나 ChatGPT 개발자 모드 커넥터로 등록해 씁니다.
 
 ## 제공 도구
 
@@ -75,6 +75,31 @@ Claude Code 에서는:
 ```bash
 claude mcp add --transport http opendart https://opendart-mcp.onrender.com/s/<TOKEN>/mcp
 ```
+
+---
+
+## 3-1. ChatGPT 에 등록 (개발자 모드)
+
+같은 서버를 그대로 ChatGPT 에서도 씁니다. 별도 배포나 코드 수정은 필요 없습니다.
+(개발자 모드는 Plus·Pro·Business·Enterprise·Edu 요금제에서 제공되며, 조직 계정은 관리자 허용이 필요할 수 있습니다.)
+
+1. ChatGPT → **Settings → Apps & Connectors → Advanced settings** → **Developer mode** 켜기
+2. **Apps & Connectors → Create** 에서 입력
+   - Name: `OpenDART`
+   - MCP Server URL:
+     ```
+     https://opendart-mcp.onrender.com/s/<MCP_AUTH_TOKEN>/mcp
+     ```
+     (claude.ai 에 등록한 주소와 동일. 끝의 `/mcp` 필수)
+   - Authentication: **No authentication** (토큰이 URL 경로에 들어 있음)
+   - "I trust this application" 체크 → **Create**
+3. 새 대화 → 입력창 `+` → **Developer mode** → `OpenDART` 켜고 질문
+
+모든 도구에 `readOnlyHint` 가 붙어 있어 ChatGPT 가 호출마다 쓰기 확인 창을 띄우지 않습니다.
+`MCP_ALLOWED_HOSTS` 를 설정한 경우에도 `chatgpt.com` Origin 은 허용 목록에 들어 있습니다.
+
+> 무료 플랜 서버가 잠들어 있으면 첫 연결(Create)이 시간 초과로 실패할 수 있습니다.
+> `/healthz` 를 한 번 열어 깨운 뒤 다시 시도하세요.
 
 ---
 

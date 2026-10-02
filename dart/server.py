@@ -4,7 +4,7 @@
 opendart remote MCP server (Streamable HTTP)
 
 금융감독원 전자공시 OPEN API(opendart.fss.or.kr)를 감싸는 원격 MCP 서버.
-claude.ai 의 "커스텀 커넥터"로 등록할 수 있도록 Streamable HTTP 로 노출한다.
+claude.ai 의 "커스텀 커넥터"·ChatGPT 개발자 모드 커넥터로 등록할 수 있도록 Streamable HTTP 로 노출한다.
 구조와 접근 제어 방식은 상위 폴더의 korean-law 서버와 같다.
 
 환경변수:
@@ -41,6 +41,7 @@ from typing import Annotated, Literal, Optional
 import anyio
 from mcp.server.mcpserver import MCPServer
 from mcp.server.transport_security import TransportSecuritySettings
+from mcp.types import ToolAnnotations
 from pydantic import Field
 
 API_KEY = os.environ.get("DART_API_KEY", "").strip()
@@ -288,6 +289,10 @@ def _document_blocking(rcept_no: str, offset: int, max_chars: int) -> str:
 
 # ---------------------------------------------------------------- MCP
 
+# 모든 도구는 조회 전용이다. ChatGPT 개발자 모드는 readOnlyHint 가 없는 도구를
+# 쓰기 작업으로 보고 호출마다 확인을 요구하므로 명시해 둔다.
+READ_ONLY = ToolAnnotations(readOnlyHint=True, destructiveHint=False, openWorldHint=True)
+
 mcp = MCPServer(
     name="opendart",
     version="1.0.0",
@@ -301,6 +306,7 @@ mcp = MCPServer(
 
 
 @mcp.tool(
+    annotations=READ_ONLY,
     description=(
         "회사명(국문/영문 일부), 종목코드(6자리) 또는 고유번호로 DART 고유번호(corp_code)를 찾는다. "
         "상장사와 정확히 일치하는 이름이 먼저 나온다."
@@ -317,7 +323,7 @@ async def find_corp(
     return json.dumps(result, ensure_ascii=False, indent=2)
 
 
-@mcp.tool(description="기업개황(정식명칭, 대표자, 법인구분, 업종, 주소, 설립일, 결산월 등)을 조회한다.")
+@mcp.tool(annotations=READ_ONLY, description="기업개황(정식명칭, 대표자, 법인구분, 업종, 주소, 설립일, 결산월 등)을 조회한다.")
 async def company_info(
     corp_code: Annotated[str, Field(description="고유번호 8자리(find_corp 결과)")],
 ) -> str:
@@ -325,6 +331,7 @@ async def company_info(
 
 
 @mcp.tool(
+    annotations=READ_ONLY,
     description=(
         "공시 목록을 검색한다(list.json). corp_code 를 비우면 전체 회사 대상이며 이때 기간은 최대 3개월이다. "
         "결과의 rcept_no 를 get_document 에 넘기면 본문을 읽을 수 있다."
@@ -365,6 +372,7 @@ async def search_disclosures(
 
 
 @mcp.tool(
+    annotations=READ_ONLY,
     description=(
         "재무제표를 조회한다. full=False 면 주요계정(매출액·영업이익·당기순이익·자산·부채·자본 등, "
         "corp_code 를 쉼표로 여러 개 넣으면 회사 간 비교), full=True 면 전체 재무제표(단일회사). "
@@ -386,6 +394,7 @@ async def financials(
 
 
 @mcp.tool(
+    annotations=READ_ONLY,
     description=(
         "정기보고서(사업·반기·분기보고서)의 주요정보를 조회한다. api: "
         + ", ".join("%s(%s)" % (k, v) for k, v in REPORT_APIS.items())
@@ -401,6 +410,7 @@ async def report_info(
 
 
 @mcp.tool(
+    annotations=READ_ONLY,
     description=(
         "지분공시를 조회한다. kind=major 면 대량보유 상황보고(5% 룰), "
         "kind=executive 면 임원·주요주주 소유보고."
@@ -415,6 +425,7 @@ async def shareholding(
 
 
 @mcp.tool(
+    annotations=READ_ONLY,
     description=(
         "공시서류 원문을 텍스트로 읽는다(document.xml). rcept_no 는 search_disclosures 결과의 14자리 접수번호. "
         "길면 offset 으로 이어 읽는다."
@@ -431,6 +442,7 @@ async def get_document(
 
 
 @mcp.tool(
+    annotations=READ_ONLY,
     description=(
         "전용 도구가 없는 OpenDART JSON API 를 직접 호출한다. path 는 '<API명>.json' 형식. "
         "예: 주요사항보고서 piicDecsn.json(유상증자결정), cvbdIsDecsn.json(전환사채발행결정), "
@@ -530,7 +542,10 @@ if ALLOWED_HOSTS:
     _security = TransportSecuritySettings(
         enable_dns_rebinding_protection=True,
         allowed_hosts=ALLOWED_HOSTS,
-        allowed_origins=["https://claude.ai", "https://*.claude.ai"],
+        allowed_origins=[
+            "https://claude.ai", "https://*.claude.ai",
+            "https://chatgpt.com", "https://*.chatgpt.com", "https://chat.openai.com",
+        ],
     )
 else:
     # 배포 호스트명을 모르는 경우. 접근 통제는 TokenGate 가 담당한다.
