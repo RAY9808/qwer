@@ -6,7 +6,8 @@
 
 제공 도구: `search_law`, `get_law`, `search_precedent`, `get_precedent`, `search`, `get`
 
-> 같은 방식의 **전자공시(OpenDART) 원격 MCP 서버**는 [`dart/`](dart/README.md) 폴더에 있습니다.
+> 같은 방식의 **전자공시(OpenDART) 원격 MCP 서버**는 [`dart/`](dart/README.md),
+> **부동산(공시지가·실거래가·토지이용계획 등) 원격 MCP 서버**는 [`realestate/`](realestate/README.md) 폴더에 있습니다.
 
 ---
 
