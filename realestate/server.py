@@ -75,6 +75,9 @@ RTMS = {
     "silv_trade": ("RTMSDataSvcSilvTrade", "분양/입주권 전매"),
     "indu_trade": ("RTMSDataSvcInduTrade", "공장/창고 등 매매"),
 }
+# 활용신청하지 않은 서비스면 대체 서비스로 한 번 재시도한다(아파트 매매 상세 → 기본)
+RTMS_FALLBACK = {"RTMSDataSvcAptTradeDev": ("RTMSDataSvcAptTrade", "아파트 매매")}
+
 RtmsKind = Literal[
     "apt_trade", "apt_rent", "rh_trade", "rh_rent", "sh_trade", "sh_rent",
     "offi_trade", "offi_rent", "land_trade", "nrg_trade", "silv_trade", "indu_trade",
@@ -303,11 +306,14 @@ def _rtms_blocking(kind: str, lawd_cd: str, deal_ymd: str, months: int, keyword:
     for ym in _months(deal_ymd, months):
         page = 1
         while True:
-            res = _data_go(
-                "1613000/%s/get%s" % (svc, svc),
-                {"LAWD_CD": lawd_cd, "DEAL_YMD": ym, "pageNo": page, "numOfRows": 1000},
-                label,
-            )
+            params = {"LAWD_CD": lawd_cd, "DEAL_YMD": ym, "pageNo": page, "numOfRows": 1000}
+            try:
+                res = _data_go("1613000/%s/get%s" % (svc, svc), params, label)
+            except RuntimeError:
+                if svc not in RTMS_FALLBACK or totals:
+                    raise
+                svc, label = RTMS_FALLBACK[svc]
+                res = _data_go("1613000/%s/get%s" % (svc, svc), params, label)
             totals[ym] = res.get("totalCount", 0)
             for it in res.get("items", []):
                 blob = " ".join(it.values())
