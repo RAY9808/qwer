@@ -62,7 +62,7 @@ SECRET_PARAMS = ("key", "serviceKey")
 
 # 국토교통부 실거래가 (공공데이터포털, 1613000)
 RTMS = {
-    "apt_trade": ("RTMSDataSvcAptTradeDev", "아파트 매매(상세)"),
+    "apt_trade": ("RTMSDataSvcAptTrade", "아파트 매매"),
     "apt_rent": ("RTMSDataSvcAptRent", "아파트 전월세"),
     "rh_trade": ("RTMSDataSvcRHTrade", "연립다세대 매매"),
     "rh_rent": ("RTMSDataSvcRHRent", "연립다세대 전월세"),
@@ -75,8 +75,8 @@ RTMS = {
     "silv_trade": ("RTMSDataSvcSilvTrade", "분양/입주권 전매"),
     "indu_trade": ("RTMSDataSvcInduTrade", "공장/창고 등 매매"),
 }
-# 활용신청하지 않은 서비스면 대체 서비스로 한 번 재시도한다(아파트 매매 상세 → 기본)
-RTMS_FALLBACK = {"RTMSDataSvcAptTradeDev": ("RTMSDataSvcAptTrade", "아파트 매매")}
+# 활용신청하지 않은 서비스면 대체 서비스로 한 번 재시도한다(아파트 매매 기본 → 상세)
+RTMS_FALLBACK = {"RTMSDataSvcAptTrade": ("RTMSDataSvcAptTradeDev", "아파트 매매(상세)")}
 
 RtmsKind = Literal[
     "apt_trade", "apt_rent", "rh_trade", "rh_rent", "sh_trade", "sh_rent",

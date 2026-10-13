@@ -75,7 +75,7 @@ class MockApi(BaseHTTPRequestHandler):
                     "<response><header><resultCode>00</resultCode></header><body><items>"
                     "<item><bldNm>정부서울청사</bldNm><mainPurpsCdNm>업무시설</mainPurpsCdNm></item>"
                     "</items><totalCount>1</totalCount></body></response>", "text/xml")
-            if "AptTradeDev" in path and q["LAWD_CD"] == "11680":  # 상세 미신청 상황
+            if "AptTrade/" in path and q["LAWD_CD"] == "11680":  # 기본 미신청 상황
                 return self._send(AUTH_ERR_XML, "text/xml")
             ym = q["DEAL_YMD"]
             return self._send(RTMS_XML.format(y=ym[:4], m=int(ym[4:])), "text/xml")
@@ -214,8 +214,8 @@ def main() -> int:
             print("[6] real_transactions OK -> %d개월, %d건 매칭" % (len(res["months"]), res["matched"]))
             if mock:
                 err, text = _tool("real_transactions", {"kind": "apt_trade", "lawd_cd": "11680", "deal_ymd": "202501"})
-                assert not err and "아파트 매매" in text and "상세" not in json.loads(text)["kind"], text[:500]
-                print("[6b] apt_trade 상세 미신청 → 기본 자료로 자동 전환 OK")
+                assert not err and "상세" in json.loads(text)["kind"], text[:500]
+                print("[6b] apt_trade 기본 미신청 → 상세 자료로 자동 전환 OK")
             err, text = _tool("building_register", {"target": ADDR})
             assert not err, text
             print("[7] building_register OK")
